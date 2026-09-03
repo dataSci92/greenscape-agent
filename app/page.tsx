@@ -15,6 +15,42 @@ type Proposal = {
   total: number
 }
 
+function buildProposalItems(siteNotes: string): ProposalItem[] {
+  const notes = siteNotes.toLowerCase()
+  const items: ProposalItem[] = []
+
+  if (notes.includes('paver') || notes.includes('travertine') || notes.includes('patio')) {
+    const quantity = Number(notes.match(/(\d[\d,]*)\s*(?:sq\.?\s*ft|square feet|sf)/)?.[1]?.replace(',', '')) || 500
+    items.push({ item_name: 'Paver / Patio Installation', quantity, unit_price: 18.50, total: quantity * 18.50 })
+  }
+  if (notes.includes('fire pit') || notes.includes('fireplace')) {
+    items.push({ item_name: 'Gas Fire Feature', quantity: 1, unit_price: 2800, total: 2800 })
+  }
+  if (notes.includes('pool') || notes.includes('spa')) {
+    items.push({ item_name: 'Pool / Spa Scope', quantity: 1, unit_price: 45000, total: 45000 })
+  }
+  if (notes.includes('turf') || notes.includes('grass')) {
+    const quantity = Number(notes.match(/(\d[\d,]*)\s*(?:sq\.?\s*ft|square feet|sf)/)?.[1]?.replace(',', '')) || 500
+    items.push({ item_name: 'Turf Installation', quantity, unit_price: 8.50, total: quantity * 8.50 })
+  }
+  if (notes.includes('irrigation') || notes.includes('sprinkler')) {
+    items.push({ item_name: 'Irrigation Updates', quantity: 1, unit_price: 3200, total: 3200 })
+  }
+  if (notes.includes('plant') || notes.includes('tree') || notes.includes('shrub')) {
+    items.push({ item_name: 'Planting and Softscape', quantity: 1, unit_price: 4500, total: 4500 })
+  }
+
+  if (items.length === 0) {
+    items.push({ item_name: 'Custom Landscape Scope', quantity: 1, unit_price: 2500, total: 2500 })
+  }
+
+  const subtotal = items.reduce((sum, item) => sum + item.total, 0)
+  const laborTotal = Math.round(subtotal * 0.15)
+  items.push({ item_name: 'Project Labor', quantity: 1, unit_price: laborTotal, total: laborTotal })
+
+  return items
+}
+
 export default function Home() {
   const [clientName, setClientName] = useState('')
   const [siteNotes, setSiteNotes] = useState('')
@@ -43,15 +79,11 @@ export default function Home() {
     setLoading(true)
     
     setTimeout(() => {
+      const items = buildProposalItems(siteNotes)
       setProposal({
-        narrative: `Dear ${clientName},\n\nThank you for the opportunity to work on your outdoor living project. Based on our site walk, I've developed a comprehensive scope of work.\n\nI've priced this project competitively while maintaining the quality standards Greenscape Pro is known for.\n\nWarm regards,\nMarcus Tate\nFounder, Greenscape Pro`,
-        items: [
-          { item_name: 'Travertine Pavers', quantity: 500, unit_price: 18.50, total: 9250 },
-          { item_name: 'Base Preparation', quantity: 500, unit_price: 4.50, total: 2250 },
-          { item_name: 'Gas Fire Pit', quantity: 1, unit_price: 2800, total: 2800 },
-          { item_name: 'General Labor', quantity: 40, unit_price: 65, total: 2600 },
-        ],
-        total: 16900
+        narrative: `Dear ${clientName},\n\nThank you for the opportunity to work on your outdoor living project. Based on your site notes, I've developed a scope of work tailored to this project:\n\n${siteNotes}\n\nI've priced this project competitively while maintaining the quality standards Greenscape Pro is known for.\n\nWarm regards,\nTafseer Haider\nFounder, Greenscape Pro`,
+        items,
+        total: items.reduce((sum, item) => sum + item.total, 0)
       })
       setLoading(false)
     }, 2000)
